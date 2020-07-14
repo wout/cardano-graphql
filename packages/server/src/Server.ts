@@ -19,6 +19,7 @@ export type Config = {
   allowedOrigins?: CorsOptions['origin']
   apiPort: number
   cacheEnabled: boolean
+  httpServerSocketTimeout?: number
   listenAddress: string
   prometheusMetrics: boolean
   queryDepthLimit?: number
@@ -88,9 +89,13 @@ export class Server {
 
   async start () {
     this.httpServer = await listenPromise(this.app, this.config.apiPort, this.config.listenAddress)
-    console.log(`GraphQL HTTP server at http://${this.config.listenAddress}:` +
-      `${this.config.apiPort}${this.apolloServer.graphqlPath} started`
-    )
+    const serverUri = `http://${this.config.listenAddress}:${this.config.apiPort}`
+    console.log(`GraphQL HTTP server at ${serverUri} started`)
+    if (this.config.httpServerSocketTimeout !== undefined) {
+      this.httpServer.on('connection', (socket) => {
+        socket.setTimeout(this.config.httpServerSocketTimeout * 1000)
+      })
+    }
   }
 
   shutdown () {

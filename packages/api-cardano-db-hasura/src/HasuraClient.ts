@@ -143,7 +143,7 @@ export class HasuraClient {
     if (this.state !== null) return
     this.state = 'initializing'
     this.logger.info({ module: 'HasuraClient' }, 'Initializing')
-    await this.applySchemaAndMetadata()
+    // await this.applySchemaAndMetadata()
     await pRetry(async () => {
       this.schema = await this.buildHasuraSchema()
     }, {

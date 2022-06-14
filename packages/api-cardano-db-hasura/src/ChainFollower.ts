@@ -15,6 +15,10 @@ import { dummyLogger, Logger } from 'ts-log'
 
 const MODULE_NAME = 'ChainFollower'
 
+// Todo: Hoist upstream
+export const isBabbageBlock = (block: Schema.Block): block is { babbage: Schema.BlockBabbage } =>
+  (block as { babbage: Schema.BlockBabbage }).babbage !== undefined
+
 export class ChainFollower {
   private chainSyncClient: ChainSync.ChainSyncClient
   private queue: PgBoss
@@ -65,9 +69,10 @@ export class ChainFollower {
             requestNext()
           },
           rollForward: async ({ block }, requestNext) => {
-            let b: Schema.BlockMary
-            if (isAlonzoBlock(block)) {
-              // @ts-ignore
+            let b: Schema.BlockBabbage | Schema.BlockAlonzo | Schema.BlockMary
+            if (isBabbageBlock(block)) {
+              b = block.babbage as Schema.BlockBabbage
+            } else if (isAlonzoBlock(block)) {
               b = block.alonzo as Schema.BlockAlonzo
             } else if (isMaryBlock(block)) {
               b = block.mary as Schema.BlockMary
